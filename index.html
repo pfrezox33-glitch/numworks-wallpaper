@@ -25,15 +25,17 @@ $('python').onclick=()=>{
  const data=canvas.getContext('2d').getImageData(0,0,320,222).data;
  const palette=[],map=new Map(),pixels=[];
  for(let i=0;i<data.length;i+=4){
-   const r=Math.round(data[i]/85)*85,g=Math.round(data[i+1]/85)*85,b=Math.round(data[i+2]/85)*85;
+   const r=Math.round(data[i]/85)*85;
+   const g=data[i+1]>=128?255:0;
+   const b=data[i+2]>=128?255:0;
    const key=r+','+g+','+b;
    let idx=map.get(key);
-   if(idx===undefined){idx=palette.length;if(idx>15)idx=15;else{map.set(key,idx);palette.push([r,g,b]);}}
+   if(idx===undefined){idx=palette.length;map.set(key,idx);palette.push([r,g,b]);}
    pixels.push(idx.toString(16));
  }
  const colors=palette.map(c=>'('+c.join(',')+')').join(',');
  const rows=[];for(let y=0;y<222;y++)rows.push(pixels.slice(y*320,(y+1)*320).join(''));
- const py='# Image NumWorks 320x222 - genere par NumWorks Wallpaper\\nfrom kandinsky import fill_rect\\n\\nPALETTE=['+colors+']\\nDATA=\\n'+rows.map(r=>'    "'+r+'"').join(' +\\n')+'\\n\\nfor y, row in enumerate(DATA.splitlines()):\\n    x = 0\\n    while x < 320:\\n        color = int(row[x], 16)\\n        end = x + 1\\n        while end < 320 and int(row[end], 16) == color:\\n            end += 1\\n        fill_rect(x, y, end-x, 1, PALETTE[color])\\n        x = end\\n';
+ const py='# Image NumWorks 320x222 - genere par NumWorks Wallpaper\nfrom kandinsky import fill_rect\n\nPALETTE=['+colors+']\nDATA = (\n'+rows.map(r=>'    "'+r+'"').join('\n')+'\n)\n\nfor y, row in enumerate(DATA):\n    x = 0\n    while x < 320:\n        color = int(row[x], 16)\n        end = x + 1\n        while end < 320 and int(row[end], 16) == color:\n            end += 1\n        fill_rect(x, y, end-x, 1, PALETTE[color])\n        x = end\n';
  const blob=new Blob([py],{type:'text/x-python;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=u;a.download='wallpaper_numworks.py';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
  $('status').textContent='Programme Python téléchargé. Importe-le dans Mes scripts sur my.numworks.com, puis envoie-le à ta calculatrice par USB.';

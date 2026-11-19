@@ -1,31 +1,12 @@
 #include <eadk.h>
 #include <stdint.h>
-
-const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "Wallpaper";
+#include <stdbool.h>
+const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "Themes";
 const uint32_t eadk_api_level __attribute__((section(".rodata.eadk_api_level"))) = 0;
-
-int main(int argc, char *argv[]) {
-  (void)argc;
-  (void)argv;
-
-  const uint32_t expected_size = 320u * 222u * 2u;
-  if (eadk_external_data == 0 || eadk_external_data_size < expected_size) {
-    eadk_display_draw_string("Image absente ou invalide", (eadk_point_t){8, 100},
-                             true, eadk_color_black, eadk_color_white);
-    eadk_timing_msleep(2500);
-    return 0;
-  }
-
-  const eadk_rect_t image_rect = {0, 9, 320, 222};
-  eadk_display_push_rect(image_rect, (const eadk_color_t *)eadk_external_data);
-
-  while (1) {
-    eadk_keyboard_state_t keys = eadk_keyboard_scan();
-    if (eadk_keyboard_key_down(keys, eadk_key_back) ||
-        eadk_keyboard_key_down(keys, eadk_key_home)) {
-      break;
-    }
-    eadk_timing_msleep(30);
-  }
-  return 0;
-}
+typedef struct {const char*n;eadk_color_t bg,card,accent,fg;} T;
+static const T t[]={{"Clair",0xF7F7F2,0xFFFFFF,0x315C9B,0x18202C},{"Sombre",0x101722,0x202D40,0x8DB4FF,0xF1F5FC},{"Ocean",0x071E2B,0x103B50,0x42C6C8,0xE7FAFF},{"Rose",0x2B1724,0x48263A,0xFF9FCB,0xFFF0F7},{"Nature",0x14251B,0x263F30,0x9BCB83,0xF0F8EA},{"Lavande",0x211B35,0x382D55,0xC6A9FF,0xF5F0FF}};
+static int s=0; static bool photo=false;
+static void txt(const char*a,int x,int y,bool l,eadk_color_t f,eadk_color_t b){eadk_display_draw_string(a,(eadk_point_t){x,y},l,f,b);}
+static void menu(void){const T*a=&t[s];eadk_display_push_rect_uniform(eadk_screen_rect,a->bg);txt("THEMES NUMWORKS",12,10,true,a->fg,a->bg);txt("HAUT/BAS: choisir  OK: apercu",12,34,false,a->fg,a->bg);for(int i=0;i<6;i++){int y=58+i*25;eadk_color_t b=i==s?a->accent:a->card,f=i==s?a->bg:a->fg;eadk_display_push_rect_uniform((eadk_rect_t){12,y,296,22},b);txt(t[i].n,22,y+5,false,f,b);eadk_display_push_rect_uniform((eadk_rect_t){270,y+5,12,12},t[i].accent);}txt("EXE: photo  BACK: quitter",18,218,false,a->fg,a->bg);}
+static void showphoto(void){if(eadk_external_data&&eadk_external_data_size>=320u*222u*2u){eadk_display_push_rect((eadk_rect_t){0,9,320,222},(const eadk_color_t*)eadk_external_data);txt("BACK: MENU",8,224,false,0xFFFF,0x101722);}else{eadk_display_push_rect_uniform(eadk_screen_rect,t[s].bg);txt("Aucune image jointe",65,100,true,t[s].fg,t[s].bg);txt("Ajoute un .bin avec le site",35,130,false,t[s].fg,t[s].bg);txt("BACK: MENU",8,224,false,t[s].accent,t[s].bg);}}
+int main(void){bool ou=0,od=0,ok0=0,ob=0,oe=0;menu();while(1){eadk_keyboard_state_t k=eadk_keyboard_scan();bool u=eadk_keyboard_key_down(k,eadk_key_up),d=eadk_keyboard_key_down(k,eadk_key_down),o=eadk_keyboard_key_down(k,eadk_key_ok),b=eadk_keyboard_key_down(k,eadk_key_back),e=eadk_keyboard_key_down(k,eadk_key_exe);if(photo){if((b&&!ob)||(o&&!ok0)){photo=0;menu();}}else{if(u&&!ou){s=(s+5)%6;menu();}if(d&&!od){s=(s+1)%6;menu();}if((o&&!ok0)||(e&&!oe)){photo=1;showphoto();}if(b&&!ob)return 0;}ou=u;od=d;ok0=o;ob=b;oe=e;eadk_timing_msleep(35);}}

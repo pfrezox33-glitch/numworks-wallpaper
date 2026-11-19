@@ -1,4 +1,4 @@
-name: Build and deploy NumWorks Wallpaper
+name: Build and deploy NumWorks Themes
 on:
   push:
     branches: [main]
@@ -26,7 +26,7 @@ jobs:
           sudo npm install --global nwlink@0.0.16
       - name: Fetch official Epsilon EADK headers
         run: git clone --depth 1 https://github.com/numworks/epsilon.git epsilon-sdk
-      - name: Build Epsilon wallpaper app
+      - name: Build Epsilon themes app
         run: |
           python3 tools/make_icon.py src/icon.png
           make clean
@@ -34,7 +34,7 @@ jobs:
           test -s output/app.nwa
           mkdir -p site
           cp index.html site/index.html
-          cp output/app.nwa site/wallpaper.nwa
+          cp output/app.nwa site/themes.nwa
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

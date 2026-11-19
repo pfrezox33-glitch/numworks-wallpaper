@@ -19,17 +19,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Epsilon app toolchain
+      - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-none-eabi nodejs npm
+          sudo apt-get install -y gcc-arm-none-eabi nodejs npm python3 git
+          sudo npm install --global nwlink@0.0.16
+      - name: Fetch official Epsilon EADK headers
+        run: git clone --depth 1 https://github.com/numworks/epsilon.git epsilon-sdk
       - name: Build Epsilon wallpaper app
         run: |
+          python3 tools/make_icon.py src/icon.png
           make clean
           make build
+          test -s output/app.nwa
           mkdir -p site
           cp index.html site/index.html
-          cp output/wallpaper.nwa site/wallpaper.nwa
+          cp output/app.nwa site/wallpaper.nwa
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
